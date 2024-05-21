@@ -33,44 +33,38 @@ var romanNumerals = map[string]int{
 func romanToArabic(roman string) (int, error) {
 	val, ok := romanNumerals[roman]
 	if !ok {
-		return 0, fmt.Errorf("invalid Roman numeral: %s", roman)
+		panic("невалидное римское число")
 	}
 	return val, nil
 }
 
 func arabicToRoman(num int) (string, error) {
 	if num < 1 || num > 100 {
-		return "", fmt.Errorf("неверное арабское число: %d", num)
+		panic("невалидное число")
 	}
 
-	// Строка для хранения римского числа
 	var romanNumber strings.Builder
 
-	// Проверяем десятки
 	tens := num / 10
 	if tens > 0 {
-		// Извлекаем соответствующее римское число из массива
 		roman, found := reverseLookup(romanNumerals, tens*10)
 		if !found {
-			return "", fmt.Errorf("не найдено римское представление для числа: %d", num)
+			panic("не найдено римское представление для числа")
 		}
-		// Добавляем римское число к строке
+
 		romanNumber.WriteString(roman)
 	}
 
-	// Проверяем единицы
 	units := num % 10
 	if units > 0 {
-		// Извлекаем соответствующее римское число из массива
 		roman, found := reverseLookup(romanNumerals, units)
 		if !found {
-			return "", fmt.Errorf("не найдено римское представление для числа: %d", num)
+			panic("не найдено римское представление для числа")
 		}
-		// Добавляем римское число к строке
+
 		romanNumber.WriteString(roman)
 	}
 
-	// Возвращаем римское число в виде строки
 	return romanNumber.String(), nil
 }
 
@@ -96,10 +90,8 @@ func main() {
 
 	parts := strings.Fields(input)
 
-	// Check if the input is not exactly three parts
 	if len(parts) != 3 {
-		fmt.Println("Ошибка: неверный формат ввода. Ожидается два операнда и один оператор.")
-		return
+		panic("Ошибка: неверный формат ввода. Ожидается два операнда и один оператор.")
 	}
 
 	aStr := parts[0]
@@ -110,7 +102,6 @@ func main() {
 	var errA, errB error
 	var isRoman bool
 
-	// Check if both operands are either Roman numerals or Arabic numerals
 	if isRomanNumeral(aStr) && isRomanNumeral(bStr) {
 		a, errA = romanToArabic(aStr)
 		b, errB = romanToArabic(bStr)
@@ -119,13 +110,11 @@ func main() {
 		a, errA = strconv.Atoi(aStr)
 		b, errB = strconv.Atoi(bStr)
 	} else {
-		fmt.Println("Ошибка: используются одновременно разные системы счисления.")
-		return
+		panic("Ошибка: используются одновременно разные системы счисления.")
 	}
 
 	if errA != nil || errB != nil || a < 1 || a > 10 || b < 1 || b > 10 {
-		fmt.Println("Ошибка: числа должны быть от 1 до 10 включительно")
-		return
+		panic("Ошибка: числа должны быть от 1 до 10 включительно")
 	}
 
 	var result int
@@ -139,20 +128,17 @@ func main() {
 		result = a * b
 	case "/":
 		if b == 0 {
-			fmt.Println("Ошибка: деление на ноль")
-			return
+			panic("Ошибка: деление на ноль")
 		}
 		result = a / b
 	default:
-		fmt.Println("Ошибка: неподдерживаемая операция")
-		return
+		panic("Ошибка: неподдерживаемая операция")
 	}
 
 	if isRoman {
 		romanResult, err := arabicToRoman(result)
 		if err != nil {
-			fmt.Println("Ошибка при конвертации результата в римское число:", err)
-			return
+			panic("Ошибка при конвертации результата в римское число")
 		}
 		fmt.Println("Результат:", romanResult)
 	} else {
