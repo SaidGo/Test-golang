@@ -1,0 +1,21 @@
+# Сборочные файлы
+*.exe
+*.out
+*.a
+
+# Временные файлы
+*.log
+*.tmp
+
+# Кэш
+*.cache
+
+# Каталоги
+bin/
+vendor/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
