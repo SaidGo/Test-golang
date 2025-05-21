@@ -1,21 +1,23 @@
-# Сборочные файлы
+# Сборочные файлы Go
 *.exe
+*.exe~
 *.out
-*.a
-
-# Временные файлы
-*.log
-*.tmp
+*.test
 
 # Кэш
+*.log
+*.tmp
 *.cache
 
-# Каталоги
+# Папки Go tooling
 bin/
 vendor/
 
-# IDE
+# Конфиги и IDE
 .vscode/
 .idea/
 *.swp
+
+# Системные файлы
 .DS_Store
+Thumbs.db
