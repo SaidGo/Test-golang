@@ -7,6 +7,9 @@
 *.log
 *.tmp
 
+# SQLite database
+tasks.db
+
 # Dependency and build folders
 vendor/
 bin/
