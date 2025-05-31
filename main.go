@@ -16,14 +16,15 @@ import (
 
 // Модель задачи
 type Task struct {
-	ID     uint   `json:"id" gorm:"primaryKey"`
-	Text   string `json:"task"`
-	IsDone bool   `json:"is_done"`
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	ID        uint           `json:"id" gorm:"primaryKey"`
+	Text      string         `json:"task"`              
+	IsDone    bool           `json:"is_done"`           
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`    
 }
 
 var db *gorm.DB
 
+// Инициализация базы данных
 func initDB() {
 	dsn := "host=localhost user=postgres password=1987 dbname=tasksdb port=8088 sslmode=disable"
 	var err error
@@ -43,7 +44,7 @@ func initDB() {
 	}
 }
 
-// POST /tasks
+// POST /tasks — создание задачи
 func createTask(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Text   string `json:"task"`
@@ -61,7 +62,7 @@ func createTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(task)
 }
 
-// GET /tasks
+// GET /tasks — список задач
 func listTasks(w http.ResponseWriter, r *http.Request) {
 	var tasks []Task
 	db.Find(&tasks)
@@ -70,7 +71,7 @@ func listTasks(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tasks)
 }
 
-// PATCH /tasks/{id}
+// PATCH /tasks/{id} — обновление задачи
 func updateTask(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/tasks/")
 	id, err := strconv.Atoi(idStr)
@@ -107,7 +108,7 @@ func updateTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(task)
 }
 
-// DELETE /tasks/{id}
+// DELETE /tasks/{id} — удаление задачи
 func deleteTask(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/tasks/")
 	id, err := strconv.Atoi(idStr)
@@ -124,6 +125,7 @@ func deleteTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// Точка входа
 func main() {
 	initDB()
 
