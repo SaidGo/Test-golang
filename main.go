@@ -37,11 +37,6 @@ func initDB() {
 	if err != nil {
 		log.Fatalf("Ошибка подключения к базе данных: %v", err)
 	}
-
-	err = db.AutoMigrate(&Task{})
-	if err != nil {
-		log.Fatalf("Ошибка миграции: %v", err)
-	}
 }
 
 // POST /tasks — создание задачи
