@@ -1,0 +1,30 @@
+Структура папок тома Локальный диск
+Серийный номер тома: 9E23-68BC
+D:.
+|   .gitignore
+|   go.mod
+|   go.sum
+|   main.go
+|   Makefile
+|   make_gen.sh
+|   README.md
+|   structure.txt
+|   tasks.db
+|   
++---.github
++---internal
+|   +---handlers
+|   |       taskHandler.go
+|   |       
+|   \---web
+|       \---tasks
+|               api.gen.go
+|               
++---migrations
+|       20250616044918_tasks.down.sql
+|       20250616044918_tasks.up.sql
+|       
+\---openapi
+        .openapi
+        openapi.yaml
+        

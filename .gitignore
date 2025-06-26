@@ -1,23 +1,38 @@
+# ----------------------------------------
 # Go build artifacts
+# ----------------------------------------
 *.exe
 *.out
 *.test
+coverage.out
 
+# ----------------------------------------
 # Logs and temporary files
+# ----------------------------------------
 *.log
 *.tmp
+*.swp
+*.swo
 
-# SQLite database
+# ----------------------------------------
+# Local database files
+# ----------------------------------------
 tasks.db
 
-# Dependency and build folders
-vendor/
-bin/
+# ----------------------------------------
+# Dependency and build directories
+# ----------------------------------------
+/vendor/
+/bin/
 
-# IDE/editor config
-.idea/
-.vscode/
+# ----------------------------------------
+# IDE/editor settings
+# ----------------------------------------
+/.idea/
+/.vscode/
 
-# OS files
+# ----------------------------------------
+# OS-specific files
+# ----------------------------------------
 .DS_Store
 Thumbs.db
