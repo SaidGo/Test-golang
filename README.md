@@ -1,7 +1,7 @@
-# 📌 Go Task API с PostgreSQL
+# 📌 Go Task API с PostgreSQL + Users
 
-Простой REST API-сервер на Go с использованием GORM и PostgreSQL.  
-Реализованы все CRUD-операции (создание, чтение, обновление, удаление задач) с использованием базы данных.
+REST API-сервер на Go с использованием Echo, GORM, PostgreSQL и OpenAPI генерацией.  
+Реализованы CRUD-операции для `tasks` и `users`. Используется `strict-server` подход.
 
 ---
 
@@ -12,29 +12,26 @@
 ```sql
 CREATE DATABASE tasksdb;
 ```
-3. Клонируйте репозиторий:
+3. Клонируйте репозиторий и запустите сервер:
 ```bash
 git clone https://github.com/SaidGo/Test-golang.git
 cd Test-golang
-go run main.go
+go run ./cmd/app
 ```
 
-Сервер будет доступен по адресу:  
-`http://localhost:8080`
+Сервер доступен по адресу: `http://localhost:8080`
 
 ---
 
 ## ⚙️ Команды Makefile
 
-Если установлен `make`, доступны команды:
-
 ```bash
 make run                      # запуск сервера
 make lint                     # проверка кода линтером
-make lint-fix                 # автоисправление ошибок линтера (если возможно)
-make gen                      # генерация API из OpenAPI спецификации
-make migrate-new NAME=example # создание новой миграции
-make migrate-up               # применение всех миграций
+make lint-fix                 # автоисправление ошибок
+make gen                      # генерация API по OpenAPI
+make migrate-new NAME=users  # новая миграция
+make migrate-up               # применить миграции
 make migrate-down             # откат последней миграции
 ```
 
@@ -54,37 +51,61 @@ golangci-lint run --out-format=colored-line-number
 
 ---
 
-## 🔗 Примеры API-запросов
+## 📂 Структура проекта
 
-### ➕ POST /tasks  
-Создание новой задачи:
-```bash
-curl -X POST -H "Content-Type: application/json" -d '{"task":"Проверить почту", "is_done":false}' http://localhost:8080/tasks
+```
+.
+├── cmd/app            # main.go
+├── internal
+│   ├── database       # инициализация БД
+│   ├── tasksService   # бизнес-логика и модель Tasks
+│   ├── userService    # бизнес-логика и модель Users
+│   ├── handlers       # HTTP-обработчики (tasks, users)
+│   └── web
+│       ├── tasks      # сгенерированный код API tasks
+│       └── users      # сгенерированный код API users
+├── openapi            # спецификация OpenAPI и конфиги
+└── migrations         # SQL-миграции
 ```
 
-### 📖 GET /tasks  
-Получение списка всех задач:
+---
+
+## 🔗 Примеры API-запросов (curl)
+
+### ➕ POST /tasks
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"task":"Пример", "is_done":false}' http://localhost:8080/tasks
+```
+
+### 📖 GET /tasks
 ```bash
 curl http://localhost:8080/tasks
 ```
 
-### ✏ PATCH /tasks/{id}  
-Обновление задачи по ID:
+### ✏ PATCH /tasks/{id}
 ```bash
-curl -X PATCH -H "Content-Type: application/json" -d '{"is_done":true}' http://localhost:8080/tasks/1
+curl -X PATCH -H "Content-Type: application/json" -d '{"task":"Обновлено","is_done":true}' http://localhost:8080/tasks/1
 ```
 
-### ❌ DELETE /tasks/{id}  
-Удаление задачи по ID (мягкое удаление):
+### ❌ DELETE /tasks/{id}
 ```bash
 curl -X DELETE http://localhost:8080/tasks/1
 ```
 
 ---
 
-## 🛠 Подключение к PostgreSQL
+## 👥 Работа с Users (через Postman)
 
-Сервер подключается к базе данных PostgreSQL:
+- **GET /users** — получить список пользователей  
+- **POST /users** — создать пользователя  
+- **PATCH /users/{id}** — обновить пользователя  
+- **DELETE /users/{id}** — удалить пользователя
+
+📌 Используется генерация через oapi-codegen и strict-handlers.
+
+---
+
+## 🛠 Подключение к PostgreSQL
 
 - Host: `localhost`  
 - Port: `8088`  
@@ -96,11 +117,12 @@ curl -X DELETE http://localhost:8080/tasks/1
 
 ## 📦 Зависимости
 
-- [Echo](https://echo.labstack.com/) — HTTP-фреймворк
-- [GORM](https://gorm.io/) — ORM для Go
-- [golangci-lint](https://golangci-lint.run/) — мульти-линтер
-- [oapi-codegen](https://github.com/deepmap/oapi-codegen) — генерация API из OpenAPI
-- [golang-migrate](https://github.com/golang-migrate/migrate) — миграции базы данных
+- [Echo](https://echo.labstack.com/)
+- [GORM](https://gorm.io/)
+- [OpenAPI](https://swagger.io/specification/)
+- [oapi-codegen](https://github.com/deepmap/oapi-codegen)
+- [golang-migrate](https://github.com/golang-migrate/migrate)
+- [golangci-lint](https://golangci-lint.run/)
 
 ---
 

@@ -25,3 +25,6 @@ lint:
 	
 lint-fix:
 	golangci-lint run --fix
+	
+run:
+	go run cmd/app/main.go
