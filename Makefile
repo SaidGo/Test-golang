@@ -1,22 +1,27 @@
-
-DB_DSN := "postgres://postgres:1987@localhost:8088/tasksdb?sslmode=disable"
+DB_DSN ?= postgres://postgres:1987@localhost:8088/tasksdb?sslmode=disable
 MIGRATE := migrate -path ./migrations -database $(DB_DSN)
 
 # Создание новой миграции: make migrate-new NAME=tasks
 migrate-new:
 	migrate create -ext sql -dir ./migrations ${NAME}
 
-# Применение всех миграций
-migrate:
+migrate-up:
 	$(MIGRATE) up
 
-# Откат миграции (на один шаг назад)
 migrate-down:
 	$(MIGRATE) down
 
-# Запуск сервера
 run:
 	go run main.go
 
 gen:
 	oapi-codegen -config openapi/.openapi -include-tags tasks -package tasks openapi/openapi.yaml > ./internal/web/tasks/api.gen.go
+
+format:
+	gofmt -s -w .
+	
+lint:
+	golangci-lint run --output.text.colors=true
+	
+lint-fix:
+	golangci-lint run --fix
