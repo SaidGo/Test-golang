@@ -20,6 +20,11 @@ coverage.out
 tasks.db
 
 # ----------------------------------------
+# Lint/cache files
+# ----------------------------------------
+.golangci-lint.cache
+
+# ----------------------------------------
 # Dependency and build directories
 # ----------------------------------------
 /vendor/

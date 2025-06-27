@@ -1,4 +1,3 @@
-
 # 📌 Go Task API с PostgreSQL
 
 Простой REST API-сервер на Go с использованием GORM и PostgreSQL.  
@@ -22,6 +21,36 @@ go run main.go
 
 Сервер будет доступен по адресу:  
 `http://localhost:8080`
+
+---
+
+## ⚙️ Команды Makefile
+
+Если установлен `make`, доступны команды:
+
+```bash
+make run                      # запуск сервера
+make lint                     # проверка кода линтером
+make lint-fix                 # автоисправление ошибок линтера (если возможно)
+make gen                      # генерация API из OpenAPI спецификации
+make migrate-new NAME=example # создание новой миграции
+make migrate-up               # применение всех миграций
+make migrate-down             # откат последней миграции
+```
+
+---
+
+## 🧪 Линтер
+
+Установка:
+```bash
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+```
+
+Запуск:
+```bash
+golangci-lint run --out-format=colored-line-number
+```
 
 ---
 
@@ -62,6 +91,16 @@ curl -X DELETE http://localhost:8080/tasks/1
 - User: `postgres`  
 - Password: `1987`  
 - DB name: `tasksdb`
+
+---
+
+## 📦 Зависимости
+
+- [Echo](https://echo.labstack.com/) — HTTP-фреймворк
+- [GORM](https://gorm.io/) — ORM для Go
+- [golangci-lint](https://golangci-lint.run/) — мульти-линтер
+- [oapi-codegen](https://github.com/deepmap/oapi-codegen) — генерация API из OpenAPI
+- [golang-migrate](https://github.com/golang-migrate/migrate) — миграции базы данных
 
 ---
 
