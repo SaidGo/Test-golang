@@ -4,6 +4,7 @@
 *.exe
 *.out
 *.test
+*.bin
 coverage.out
 
 # ----------------------------------------
@@ -37,6 +38,8 @@ tasks.db
 # Swagger / OpenAPI generated files
 # ----------------------------------------
 /internal/web/
+.openapi.yaml
+openapi/*.yaml
 /openapi/*_gen.go
 /oapi-generated/
 /api/generated/
