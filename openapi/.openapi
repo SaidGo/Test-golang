@@ -1,5 +1,0 @@
-package: tasks
-generate:
-  models: true
-  echo-server: true
-  strict-server: true

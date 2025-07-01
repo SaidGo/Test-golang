@@ -1,0 +1,18 @@
+version: "2"
+
+configs:
+  - package: users
+    output: internal/web/users/api.gen.go
+    input: openapi/users.yaml
+    generate:
+      - types
+      - strict-server
+      - spec
+
+  - package: tasks
+    output: internal/web/tasks/api.gen.go
+    input: openapi/tasks.yaml
+    generate:
+      - types
+      - strict-server
+      - spec

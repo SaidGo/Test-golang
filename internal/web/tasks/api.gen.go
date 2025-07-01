@@ -4,14 +4,18 @@
 package tasks
 
 import (
-	"context"
-	"encoding/json"
+	"bytes"
+	"compress/gzip"
+	"encoding/base64"
 	"fmt"
 	"net/http"
+	"net/url"
+	"path"
+	"strings"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
-	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
 )
 
 // Task defines model for Task.
@@ -133,205 +137,87 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 }
 
-type GetTasksRequestObject struct {
+// Base64 encoded, gzipped, json marshaled Swagger object
+var swaggerSpec = []string{
+
+	"H4sIAAAAAAAC/8RTQW8TPRD9K6v5vqPV3QIn3wpIKLce4IQq5K4nicuux9gTpCjyf0czXmhIUiEOEZe1",
+	"9409897T8wFGmhNFjFzAHqCMW5ydbj+68lXWlClh5oCKBi/fNeXZMVjYhchggPcJwUKIjBvMUA2E8sVT",
+	"RDm8FB+JJnRRiry0XiqFc4gbqPVXI3p8wpGhChTimvRw4Elqwqt0d/crMPAdcwkUwcLtzXAzSG9KGF0K",
+	"YOG1QgaS461y72Wu7jbIsogwx4HiyoOFD8jaGwxkLIliaZJfDYMsI0XGqPdcSlMY9Wb/VGT+T+fUIsZZ",
+	"L/6fcQ0W/uufPe4Xg3t191mwy9ntm16PZcwhcdN1102hcEfrrpGXE2U3zy7vG+XOTdNSE2M3BexnaP8P",
+	"1UCickHqPZUjrd92WPgt+f1fyfyzOuEq3UNGD5bzDuuZtbdXmPm7g+8yOkZ/4lxD1bgLvlWzhKU/BF9l",
+	"sscJGc+dfK+4ernyGrbsZmTM0u8AQRhIAMFAdLM+Eg+ntpgjiadPqT6cefamEToW2WicimzoSyL1ZYzb",
+	"C+kQ+OqS/mXqhqun7lPyF1LX0BdTV+uPAAAA//+rpfEQkAUAAA==",
 }
 
-type GetTasksResponseObject interface {
-	VisitGetTasksResponse(w http.ResponseWriter) error
-}
-
-type GetTasks200JSONResponse []Task
-
-func (response GetTasks200JSONResponse) VisitGetTasksResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type PostTasksRequestObject struct {
-	Body *PostTasksJSONRequestBody
-}
-
-type PostTasksResponseObject interface {
-	VisitPostTasksResponse(w http.ResponseWriter) error
-}
-
-type PostTasks201JSONResponse Task
-
-func (response PostTasks201JSONResponse) VisitPostTasksResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(201)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type DeleteTasksIdRequestObject struct {
-	Id int `json:"id"`
-}
-
-type DeleteTasksIdResponseObject interface {
-	VisitDeleteTasksIdResponse(w http.ResponseWriter) error
-}
-
-type DeleteTasksId204Response struct {
-}
-
-func (response DeleteTasksId204Response) VisitDeleteTasksIdResponse(w http.ResponseWriter) error {
-	w.WriteHeader(204)
-	return nil
-}
-
-type PatchTasksIdRequestObject struct {
-	Id   int `json:"id"`
-	Body *PatchTasksIdJSONRequestBody
-}
-
-type PatchTasksIdResponseObject interface {
-	VisitPatchTasksIdResponse(w http.ResponseWriter) error
-}
-
-type PatchTasksId200JSONResponse Task
-
-func (response PatchTasksId200JSONResponse) VisitPatchTasksIdResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-// StrictServerInterface represents all server handlers.
-type StrictServerInterface interface {
-	// Get all tasks
-	// (GET /tasks)
-	GetTasks(ctx context.Context, request GetTasksRequestObject) (GetTasksResponseObject, error)
-	// Create task
-	// (POST /tasks)
-	PostTasks(ctx context.Context, request PostTasksRequestObject) (PostTasksResponseObject, error)
-	// Delete task
-	// (DELETE /tasks/{id})
-	DeleteTasksId(ctx context.Context, request DeleteTasksIdRequestObject) (DeleteTasksIdResponseObject, error)
-	// Update task
-	// (PATCH /tasks/{id})
-	PatchTasksId(ctx context.Context, request PatchTasksIdRequestObject) (PatchTasksIdResponseObject, error)
-}
-
-type StrictHandlerFunc = strictecho.StrictEchoHandlerFunc
-type StrictMiddlewareFunc = strictecho.StrictEchoMiddlewareFunc
-
-func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc) ServerInterface {
-	return &strictHandler{ssi: ssi, middlewares: middlewares}
-}
-
-type strictHandler struct {
-	ssi         StrictServerInterface
-	middlewares []StrictMiddlewareFunc
-}
-
-// GetTasks operation middleware
-func (sh *strictHandler) GetTasks(ctx echo.Context) error {
-	var request GetTasksRequestObject
-
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetTasks(ctx.Request().Context(), request.(GetTasksRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetTasks")
-	}
-
-	response, err := handler(ctx, request)
-
+// GetSwagger returns the content of the embedded swagger specification file
+// or error if failed to decode
+func decodeSpec() ([]byte, error) {
+	zipped, err := base64.StdEncoding.DecodeString(strings.Join(swaggerSpec, ""))
 	if err != nil {
-		return err
-	} else if validResponse, ok := response.(GetTasksResponseObject); ok {
-		return validResponse.VisitGetTasksResponse(ctx.Response())
-	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		return nil, fmt.Errorf("error base64 decoding spec: %w", err)
 	}
-	return nil
+	zr, err := gzip.NewReader(bytes.NewReader(zipped))
+	if err != nil {
+		return nil, fmt.Errorf("error decompressing spec: %w", err)
+	}
+	var buf bytes.Buffer
+	_, err = buf.ReadFrom(zr)
+	if err != nil {
+		return nil, fmt.Errorf("error decompressing spec: %w", err)
+	}
+
+	return buf.Bytes(), nil
 }
 
-// PostTasks operation middleware
-func (sh *strictHandler) PostTasks(ctx echo.Context) error {
-	var request PostTasksRequestObject
+var rawSpec = decodeSpecCached()
 
-	var body PostTasksJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
+// a naive cached of a decoded swagger spec
+func decodeSpecCached() func() ([]byte, error) {
+	data, err := decodeSpec()
+	return func() ([]byte, error) {
+		return data, err
 	}
-	request.Body = &body
-
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PostTasks(ctx.Request().Context(), request.(PostTasksRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostTasks")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		return err
-	} else if validResponse, ok := response.(PostTasksResponseObject); ok {
-		return validResponse.VisitPostTasksResponse(ctx.Response())
-	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
-	}
-	return nil
 }
 
-// DeleteTasksId operation middleware
-func (sh *strictHandler) DeleteTasksId(ctx echo.Context, id int) error {
-	var request DeleteTasksIdRequestObject
-
-	request.Id = id
-
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.DeleteTasksId(ctx.Request().Context(), request.(DeleteTasksIdRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "DeleteTasksId")
+// Constructs a synthetic filesystem for resolving external references when loading openapi specifications.
+func PathToRawSpec(pathToFile string) map[string]func() ([]byte, error) {
+	res := make(map[string]func() ([]byte, error))
+	if len(pathToFile) > 0 {
+		res[pathToFile] = rawSpec
 	}
 
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		return err
-	} else if validResponse, ok := response.(DeleteTasksIdResponseObject); ok {
-		return validResponse.VisitDeleteTasksIdResponse(ctx.Response())
-	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
-	}
-	return nil
+	return res
 }
 
-// PatchTasksId operation middleware
-func (sh *strictHandler) PatchTasksId(ctx echo.Context, id int) error {
-	var request PatchTasksIdRequestObject
+// GetSwagger returns the Swagger specification corresponding to the generated code
+// in this file. The external references of Swagger specification are resolved.
+// The logic of resolving external references is tightly connected to "import-mapping" feature.
+// Externally referenced files must be embedded in the corresponding golang packages.
+// Urls can be supported but this task was out of the scope.
+func GetSwagger() (swagger *openapi3.T, err error) {
+	resolvePath := PathToRawSpec("")
 
-	request.Id = id
-
-	var body PatchTasksIdJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
+	loader := openapi3.NewLoader()
+	loader.IsExternalRefsAllowed = true
+	loader.ReadFromURIFunc = func(loader *openapi3.Loader, url *url.URL) ([]byte, error) {
+		pathToFile := url.String()
+		pathToFile = path.Clean(pathToFile)
+		getSpec, ok := resolvePath[pathToFile]
+		if !ok {
+			err1 := fmt.Errorf("path not found: %s", pathToFile)
+			return nil, err1
+		}
+		return getSpec()
 	}
-	request.Body = &body
-
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PatchTasksId(ctx.Request().Context(), request.(PatchTasksIdRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PatchTasksId")
-	}
-
-	response, err := handler(ctx, request)
-
+	var specData []byte
+	specData, err = rawSpec()
 	if err != nil {
-		return err
-	} else if validResponse, ok := response.(PatchTasksIdResponseObject); ok {
-		return validResponse.VisitPatchTasksIdResponse(ctx.Response())
-	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		return
 	}
-	return nil
+	swagger, err = loader.LoadFromData(specData)
+	if err != nil {
+		return
+	}
+	return
 }

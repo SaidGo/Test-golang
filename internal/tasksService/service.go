@@ -6,6 +6,7 @@ type Task struct {
 	IsDone bool   `json:"is_done"`
 }
 
+// Repository описывает методы доступа к данным
 type Repository interface {
 	GetAll() ([]Task, error)
 	Create(Task) (Task, error)
@@ -14,30 +15,40 @@ type Repository interface {
 	Delete(id uint) error
 }
 
-type Service struct {
+// Service описывает бизнес-логику
+type Service interface {
+	GetAllTasks() ([]Task, error)
+	CreateTask(Task) (Task, error)
+	GetTaskByID(id uint) (Task, error)
+	UpdateTask(Task) (Task, error)
+	DeleteTask(id uint) error
+}
+
+type serviceImpl struct {
 	repo Repository
 }
 
-func NewService(r Repository) *Service {
-	return &Service{repo: r}
+// NewService конструктор, возвращает интерфейс Service
+func NewService(r Repository) Service {
+	return &serviceImpl{repo: r}
 }
 
-func (s *Service) GetAllTasks() ([]Task, error) {
+func (s *serviceImpl) GetAllTasks() ([]Task, error) {
 	return s.repo.GetAll()
 }
 
-func (s *Service) CreateTask(t Task) (Task, error) {
+func (s *serviceImpl) CreateTask(t Task) (Task, error) {
 	return s.repo.Create(t)
 }
 
-func (s *Service) GetTaskByID(id uint) (Task, error) {
+func (s *serviceImpl) GetTaskByID(id uint) (Task, error) {
 	return s.repo.GetByID(id)
 }
 
-func (s *Service) UpdateTask(t Task) (Task, error) {
+func (s *serviceImpl) UpdateTask(t Task) (Task, error) {
 	return s.repo.Update(t)
 }
 
-func (s *Service) DeleteTask(id uint) error {
+func (s *serviceImpl) DeleteTask(id uint) error {
 	return s.repo.Delete(id)
 }

@@ -7,26 +7,26 @@ type Service interface {
 	DeleteUser(id uint) error
 }
 
-type userService struct {
+type userServiceImpl struct {
 	repo Repository
 }
 
 func NewService(repo Repository) Service {
-	return &userService{repo: repo}
+	return &userServiceImpl{repo: repo}
 }
 
-func (s *userService) GetUsers() ([]User, error) {
+func (s *userServiceImpl) GetUsers() ([]User, error) {
 	return s.repo.GetAll()
 }
 
-func (s *userService) CreateUser(user *User) error {
+func (s *userServiceImpl) CreateUser(user *User) error {
 	return s.repo.Create(user)
 }
 
-func (s *userService) UpdateUser(user *User) error {
+func (s *userServiceImpl) UpdateUser(user *User) error {
 	return s.repo.Update(user)
 }
 
-func (s *userService) DeleteUser(id uint) error {
+func (s *userServiceImpl) DeleteUser(id uint) error {
 	return s.repo.Delete(id)
 }

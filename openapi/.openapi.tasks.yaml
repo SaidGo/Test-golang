@@ -1,0 +1,7 @@
+package: tasks
+generate:
+  - types
+  - strict-server
+  - spec
+output: internal/web/tasks/api.gen.go
+input: openapi/tasks.yaml

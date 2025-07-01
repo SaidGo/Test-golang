@@ -6,11 +6,14 @@ import (
 	"gorm.io/gorm"
 )
 
+var _ = gorm.ErrInvalidData
+
 type User struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	Email     string         `gorm:"uniqueIndex;not null" json:"email"`
-	Password  string         `gorm:"not null" json:"password"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+	ID       uint   `gorm:"primaryKey" json:"id"`
+	Email    string `gorm:"uniqueIndex;not null" json:"email"`
+	Password string `gorm:"not null" json:"password"`
+
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
