@@ -2,6 +2,7 @@ openapi: 3.0.0
 info:
   title: Users API
   version: 1.0.0
+
 paths:
   /users:
     get:
@@ -32,6 +33,7 @@ paths:
       responses:
         '201':
           description: Created
+
   /users/{id}:
     patch:
       summary: Update user by ID
@@ -71,6 +73,29 @@ paths:
       responses:
         '204':
           description: Deleted
+
+  /users/{id}/tasks:
+    get:
+      summary: Get tasks for user
+      tags:
+        - users
+      operationId: GetTasksByUserID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of tasks for the user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: 'tasks.yaml#/components/schemas/Task'  
+
 components:
   schemas:
     User:
@@ -82,6 +107,7 @@ components:
           type: string
         password:
           type: string
+
     UserInput:
       type: object
       required:

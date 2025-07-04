@@ -20,6 +20,14 @@ func (r *taskRepository) GetAll() ([]Task, error) {
 	return tasks, nil
 }
 
+func (r *taskRepository) GetByUserID(userID uint) ([]Task, error) {
+	var tasks []Task
+	if err := r.db.Where("user_id = ?", userID).Find(&tasks).Error; err != nil {
+		return nil, err
+	}
+	return tasks, nil
+}
+
 func (r *taskRepository) Create(task Task) (Task, error) {
 	if err := r.db.Create(&task).Error; err != nil {
 		return Task{}, err

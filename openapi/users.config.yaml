@@ -1,0 +1,10 @@
+package: users
+output: internal/web/users/api.gen.go
+
+generate:
+  models: true
+  client: true
+  echo-server: true
+
+import-mapping:
+  tasks.yaml: github.com/SaidGo/Test-golang/internal/web/tasks

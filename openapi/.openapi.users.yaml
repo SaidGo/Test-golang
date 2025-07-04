@@ -1,7 +1,0 @@
-package: users
-generate:
-  - types
-  - strict-server
-  - spec
-output: internal/web/users/api.gen.go
-input: openapi/users.yaml

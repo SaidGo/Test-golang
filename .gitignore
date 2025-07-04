@@ -37,12 +37,10 @@ tasks.db
 # ----------------------------------------
 # Swagger / OpenAPI generated files
 # ----------------------------------------
-/internal/web/
-.openapi.yaml
-openapi/*.yaml
-/openapi/*_gen.go
+/internal/web/*_gen.go     # только автоген
 /oapi-generated/
 /api/generated/
+/openapi/*_gen.go          # если вдруг сюда генерируешь
 
 # ----------------------------------------
 # Postman collections/environments (если временные)

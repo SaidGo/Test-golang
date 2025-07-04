@@ -1,40 +1,44 @@
-# 📌 Go Task API с PostgreSQL + Users
+# 📌 Go Task API с SQLite + Users
 
-REST API-сервер на Go с использованием **Echo**, **GORM**, **PostgreSQL** и генерации кода по **OpenAPI**.  
-Реализованы CRUD-операции для `tasks` и `users`. Используется строгий подход к маршрутам (`strict-server`), код OpenAPI сгенерирован через `oapi-codegen`.
+REST API-сервер на Go с использованием **Echo**, **GORM**, **SQLite** и генерации кода по **OpenAPI**.  
+Реализованы CRUD-операции для `tasks` и `users`, включая привязку задач к конкретным пользователям.  
+Используется строгий подход к маршрутам (`strict-server`), код сгенерирован через `oapi-codegen`.
 
-🔥 Поля вида `*_at` (`created_at`, `updated_at`) исключены из JSON-ответов на уровне сериализации.
+🔥 Поля `*_at` (`created_at`, `updated_at`) исключены из JSON-ответов.
 
 ---
 
 ## 🚀 Быстрый старт
 
-1. Установите PostgreSQL и создайте базу:
-   ```sql
-   CREATE DATABASE tasksdb;
-   ```
+1. Убедитесь, что у вас установлен Go ≥ 1.23 и SQLite.
 
-2. Клонируйте репозиторий и запустите сервер:
+2. Клонируйте репозиторий и установите зависимости:
    ```bash
    git clone https://github.com/SaidGo/Test-golang.git
    cd Test-golang
-   go run ./cmd/app
+   go mod tidy
    ```
 
-Сервер доступен по адресу: [`http://localhost:8080`](http://localhost:8080)
+3. Запустите сервер:
+   ```bash
+   make run
+   ```
+
+Сервер будет доступен на [`http://localhost:8080`](http://localhost:8080)
 
 ---
 
-## ⚙️ Makefile команды
+## ⚙️ Команды Makefile
 
 ```bash
-make run                      # запуск сервера
-make lint                     # запуск линтера
-make lint-fix                 # автоисправление ошибок
-make gen                      # генерация API-кода из openapi/*.yaml
-make migrate-new NAME=users  # создание новой миграции
-make migrate-up               # применение всех миграций
-make migrate-down             # откат последней миграции
+make run                        # запуск сервера
+make gen                        # генерация API-кода из openapi/*.yaml (users.yaml использует tasks.yaml через import-mapping)
+make migrate-new NAME=xxx      # создание новой миграции
+make migrate-up                 # применение всех миграций
+make migrate-down               # откат последней миграции
+make lint                       # проверка линтером
+make lint-fix                   # автоисправление
+make tidy                       # очистка/обновление зависимостей
 ```
 
 ---
@@ -48,7 +52,18 @@ go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
 Запуск:
 ```bash
-golangci-lint run --out-format=colored-line-number
+make lint
+```
+
+---
+
+## 🗃️ Миграции
+
+Установка:
+```bash
+# для Windows (пример):
+curl -L https://github.com/golang-migrate/migrate/releases/latest/download/migrate.windows-amd64.zip -o migrate.zip
+# распаковать и добавить migrate.exe в PATH
 ```
 
 ---
@@ -57,27 +72,29 @@ golangci-lint run --out-format=colored-line-number
 
 ```
 .
-├── cmd/app              # main.go
+├── cmd/app                 # main.go — точка входа
 ├── internal/
-│   ├── database         # инициализация БД
-│   ├── tasksService     # бизнес-логика Tasks
-│   ├── userService      # бизнес-логика Users
-│   ├── handlers         # HTTP-обработчики (tasks, users)
+│   ├── database            # инициализация SQLite
+│   ├── handlers            # HTTP-хендлеры (tasks, users)
+│   ├── tasksService        # бизнес-логика и модели задач
+│   ├── userService         # бизнес-логика и модели пользователей
 │   └── web/
-│       ├── tasks        # сгенерированный код API tasks
-│       └── users        # сгенерированный код API users
-├── openapi/             # OpenAPI-спеки и конфиги генерации
-├── migrations/          # SQL-миграции
-└── Makefile             # команды запуска и сборки
+│       ├── tasks           # сгенерированный OpenAPI код (tasks)
+│       └── users           # сгенерированный OpenAPI код (users)
+├── openapi/                # OpenAPI-спецификации и oapi-codegen.yaml
+├── migrations/             # SQL-миграции для SQLite
+├── tasks.db                # локальная БД
+├── Makefile                # команды запуска и сборки
+└── go.mod / go.sum         # зависимости
 ```
 
 ---
 
-## 🔗 Примеры API-запросов (curl)
+## 🔗 Примеры запросов (curl)
 
 ### ➕ POST /tasks
 ```bash
-curl -X POST -H "Content-Type: application/json" -d '{"task":"Пример", "is_done":false}' http://localhost:8080/tasks
+curl -X POST http://localhost:8080/tasks   -H "Content-Type: application/json"   -d '{"task":"Пример", "is_done":false, "user_id":1}'
 ```
 
 ### 📖 GET /tasks
@@ -87,7 +104,7 @@ curl http://localhost:8080/tasks
 
 ### ✏ PATCH /tasks/{id}
 ```bash
-curl -X PATCH -H "Content-Type: application/json" -d '{"task":"Обновлено","is_done":true}' http://localhost:8080/tasks/1
+curl -X PATCH http://localhost:8080/tasks/1   -H "Content-Type: application/json"   -d '{"task":"Обновлено", "is_done":true}'
 ```
 
 ### ❌ DELETE /tasks/{id}
@@ -97,24 +114,13 @@ curl -X DELETE http://localhost:8080/tasks/1
 
 ---
 
-## 👥 Работа с Users (через Postman)
+## 👥 Users (через Postman или curl)
 
-- **GET /users** — получить список пользователей  
-- **POST /users** — создать пользователя  
-- **PATCH /users/{id}** — обновить пользователя  
-- **DELETE /users/{id}** — удалить пользователя  
-
-📌 Используется генерация через `oapi-codegen` и строгие хендлеры.
-
----
-
-## 🛠 Подключение к PostgreSQL
-
-- Host: `localhost`  
-- Port: `8088`  
-- User: `postgres`  
-- Password: `1987`  
-- DB name: `tasksdb`
+- `GET /users`
+- `POST /users`
+- `PATCH /users/{id}`
+- `DELETE /users/{id}`
+- `GET /users/{id}/tasks` — задачи пользователя
 
 ---
 
@@ -122,10 +128,11 @@ curl -X DELETE http://localhost:8080/tasks/1
 
 - [Echo](https://echo.labstack.com/)
 - [GORM](https://gorm.io/)
-- [OpenAPI](https://swagger.io/specification/)
+- [SQLite](https://www.sqlite.org/)
+- [OpenAPI 3](https://swagger.io/specification/)
 - [oapi-codegen](https://github.com/deepmap/oapi-codegen)
-- [golang-migrate](https://github.com/golang-migrate/migrate)
 - [golangci-lint](https://golangci-lint.run/)
+- [migrate](https://github.com/golang-migrate/migrate)
 
 ---
 

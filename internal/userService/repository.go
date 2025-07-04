@@ -7,6 +7,7 @@ type Repository interface {
 	Create(user *User) error
 	Update(user *User) error
 	Delete(id uint) error
+	GetWithTasks(id uint) (User, error) // 👈 добавлено
 }
 
 type userRepository struct {
@@ -33,4 +34,10 @@ func (r *userRepository) Update(user *User) error {
 
 func (r *userRepository) Delete(id uint) error {
 	return r.db.Delete(&User{}, id).Error
+}
+
+func (r *userRepository) GetWithTasks(id uint) (User, error) {
+	var user User
+	err := r.db.Preload("Tasks").First(&user, id).Error
+	return user, err
 }

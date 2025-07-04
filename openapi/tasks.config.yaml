@@ -1,0 +1,7 @@
+package: tasks
+output: internal/web/tasks/api.gen.go
+
+generate:
+  models: true
+  client: true
+  echo-server: true

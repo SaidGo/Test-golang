@@ -4,11 +4,13 @@ type Task struct {
 	ID     uint   `json:"id" gorm:"primaryKey"`
 	Text   string `json:"task"`
 	IsDone bool   `json:"is_done"`
+	UserID uint   `json:"user_id"`
 }
 
 // Repository описывает методы доступа к данным
 type Repository interface {
 	GetAll() ([]Task, error)
+	GetByUserID(userID uint) ([]Task, error) // 👈 добавлено
 	Create(Task) (Task, error)
 	GetByID(id uint) (Task, error)
 	Update(Task) (Task, error)
@@ -18,6 +20,7 @@ type Repository interface {
 // Service описывает бизнес-логику
 type Service interface {
 	GetAllTasks() ([]Task, error)
+	GetTasksByUser(userID uint) ([]Task, error) // 👈 добавлено
 	CreateTask(Task) (Task, error)
 	GetTaskByID(id uint) (Task, error)
 	UpdateTask(Task) (Task, error)
@@ -35,6 +38,10 @@ func NewService(r Repository) Service {
 
 func (s *serviceImpl) GetAllTasks() ([]Task, error) {
 	return s.repo.GetAll()
+}
+
+func (s *serviceImpl) GetTasksByUser(userID uint) ([]Task, error) {
+	return s.repo.GetByUserID(userID)
 }
 
 func (s *serviceImpl) CreateTask(t Task) (Task, error) {

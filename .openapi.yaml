@@ -2,17 +2,27 @@ version: "2"
 
 configs:
   - package: users
-    output: internal/web/users/api.gen.go
     input: openapi/users.yaml
+    output: internal/web/users/api.gen.go
     generate:
       - types
       - strict-server
       - spec
+    output-options:
+      skip-prune: true
+    compatibility:
+      alias-types: true
 
   - package: tasks
-    output: internal/web/tasks/api.gen.go
     input: openapi/tasks.yaml
+    output: internal/web/tasks/api.gen.go
     generate:
       - types
       - strict-server
       - spec
+    output-options:
+      skip-prune: true
+    compatibility:
+      alias-types: true
+
+
